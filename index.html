@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智能排班系统</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    </head>
+<body>
+    <div class="glass-container">
+        <div class="header">
+            <h1><i class="fas fa-calendar-alt"></i> 智能排班系统</h1>
+            <button id="helpButton" class="help-btn">
+                <i class="fas fa-question-circle"></i> 帮助
+            </button>
+            <div class="theme-toggle">
+                <i class="fas fa-sun"></i>
+                <label class="switch">
+                    <input type="checkbox" id="themeSwitch">
+                    <span class="slider round"></span>
+                </label>
+                <i class="fas fa-moon"></i>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="control-section">
+                <div class="input-card">
+                    <div class="input-group">
+                        <input type="text" id="nameInput" placeholder="输入姓名">
+                        <button id="addButton" class="primary-btn">
+                            <i class="fas fa-user-plus"></i> 添加没课时间
+                        </button>
+                    </div>
+
+                    <div class="week-toggle-card">
+                        <span>排班周期：</span>
+                        <div class="toggle-switch">
+                            <input type="checkbox" id="weekToggle" hidden>
+                            <label for="weekToggle">
+                                <span class="toggle-label">单周</span>
+                                <span class="toggle-handle"></span>
+                                <span class="toggle-label">双周</span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="person-actions">
+                        <button id="deletePersonButton" class="secondary-btn">
+                            <i class="fas fa-user-minus"></i> 删除人员
+                        </button>
+                        <button id="deleteAllButton" class="danger-btn">
+                            <i class="fas fa-users-slash"></i> 删除所有人员
+                        </button>
+                    </div>
+                </div>
+
+                <div class="schedule-card">
+                    <div class="table-header">
+                        <h3><i class="fas fa-table"></i> 选择没课时间</h3>
+                        <div class="table-actions">
+                            <button id="clearSelection" class="icon-btn">
+                                <i class="fas fa-eraser"></i> 清除
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="table-container">
+                        <table id="scheduleTable">
+                            <thead>
+                                <!-- 表头由JavaScript动态生成 -->
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <button id="exportButton" class="export-btn">
+                    <i class="fas fa-file-export"></i> 导出没课表Excel
+                </button>
+            </div>
+
+            <div class="preview-section">
+                <div class="preview-card">
+                    <div class="preview-header">
+                        <h3><i class="fas fa-eye"></i> 没课人员预览</h3>
+                        <span id="weekIndicator">(当前：单周)</span>
+                    </div>
+
+                    <div id="previewSection" class="preview-content"></div>
+
+                    <div class="stats-card">
+                        <div class="stat-item">
+                            <span>已登记人数</span>
+                            <span id="peopleCount" class="stat-value">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span>没课时间段</span>
+                            <span id="freeSlots" class="stat-value">25</span>/25
+                        </div>
+                        <div class="stat-item">
+                            <span>冲突检测</span>
+                            <span id="conflictCount" class="stat-value">0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+        <div id="toast" class="toast"></div>
+    <!-- 帮助面板 -->
+    <div id="helpPanel" class="help-panel">
+        <div class="help-content">
+            <h2><i class="fas fa-question-circle"></i> 操作手册</h2>
+            <button id="closeHelp" class="close-help">&times;</button>
+            
+            <div class="help-section">
+                <h3>1. 系统启动</h3>
+                <p>双击打开index.html文件，系统将在默认浏览器中运行。</p>
+            </div>
+            
+            <div class="help-section">
+                <h3>2. 添加人员</h3>
+                <p>- 在"输入姓名"框中输入要添加的人员姓名</p>
+                <p>- 点击表格中的时间段选择该人员的没课时间（选中的单元格会高亮显示）</p>
+                <p>- 点击"添加没课时间"按钮完成添加</p>
+            </div>
+            
+            <div class="help-section">
+                <h3>3. 删除人员</h3>
+                <p>- 在"输入姓名"框中输入要删除的人员姓名</p>
+                <p>- 点击"删除人员"按钮</p>
+            </div>
+            
+            <div class="help-section">
+                <h3>4. 删除所有人员</h3>
+                <p>- 点击"删除所有人员"按钮</p>
+                <p>- 在弹出的确认对话框中点击"确定"</p>
+            </div>
+            
+            <div class="help-section">
+                <h3>5. 切换排班周期</h3>
+                <p>- 使用"单周/双周"切换开关选择当前排班周期</p>
+                <p>- 系统会自动保存不同周期的排班数据</p>
+            </div>
+            
+            <div class="help-section">
+                <h3>6. 查看预览</h3>
+                <p>- 系统会自动在右侧显示当前周期没课人员预览</p>
+                <p>- 点击预览表格中的单元格可以快速选择对应人员</p>
+            </div>
+            
+            <div class="help-section">
+                <h3>7. 导出Excel</h3>
+                <p>- 点击"导出没课表Excel"按钮</p>
+                <p>- 系统会生成并下载当前周期的排班表</p>
+            </div>
+            
+            <div class="help-section">
+                <h3>8. 其他功能</h3>
+                <p>- 点击"清除"按钮可以清空当前所有选中的时间段</p>
+                <p>- 系统会实时显示已登记人数、没课时间段和冲突检测统计</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 版权声明 -->
+    <div class="copyright">© 2025 版权归李鑫所有</div>
+<script src="script.js"></script>
+</body>
+</html>
